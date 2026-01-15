@@ -1,0 +1,36 @@
+name: Docker CI/CD - Ubuntu Nginx
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  docker-job:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Pull Ubuntu Image
+      run: docker pull ubuntu
+
+    - name: Run Ubuntu Container
+      run: |
+        docker run -d --name nginx-ci ubuntu sleep infinity
+
+    - name: Install Nginx inside Container
+      run: |
+        docker exec nginx-ci apt update
+        docker exec nginx-ci apt install nginx -y
+        docker exec nginx-ci service nginx start
+
+    - name: Verify Application
+      run: |
+        docker exec nginx-ci curl localhost
+
+    - name: Destroy Environment
+      run: |
+        docker stop nginx-ci
+        docker rm nginx-ci
