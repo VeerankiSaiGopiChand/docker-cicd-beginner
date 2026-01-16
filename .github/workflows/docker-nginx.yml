@@ -1,4 +1,4 @@
-name: Docker CI/CD - Ubuntu Nginx
+name: Docker CI/CD - Dockerfile Nginx
 
 on:
   push:
@@ -10,31 +10,27 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout Code
-      uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-    - name: Verify Docker
-      run: docker --version
+      - name: Verify Docker
+        run: docker --version
 
-    - name: Pull Ubuntu Image
-      run: docker pull ubuntu:latest
+      - name: Build Docker Image
+        run: |
+          docker build -t nginx-image .
 
-    - name: Run Ubuntu Container
-      run: |
-        docker run -d --name nginx-ci ubuntu:latest sleep infinity
+      - name: Run Container
+        run: |
+          docker run -d --name nginx-ci -p 8080:80 nginx-image
 
-    - name: Install Nginx & Curl inside Container
-      run: |
-        docker exec nginx-ci apt update
-        docker exec nginx-ci apt install -y nginx curl
-        docker exec nginx-ci service nginx start
+      - name: Verify Application
+        run: |
+          sleep 5
+          curl http://localhost:8080
 
-    - name: Verify Application
-      run: |
-        docker exec nginx-ci curl localhost
-
-    - name: Destroy Environment (Always Runs)
-      if: always()
-      run: |
-        docker stop nginx-ci || true
-        docker rm nginx-ci || true
+      - name: Destroy Environment (Always Runs)
+        if: always()
+        run: |
+          docker stop nginx-ci || true
+          docker rm nginx-ci || true
